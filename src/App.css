@@ -140,13 +140,21 @@ body {
   min-height: 0;
   border: 0;
   background: #fffdf7;
+  user-select: none;
+  -webkit-user-select: none;
   transition:
     background-color 120ms ease,
     box-shadow 120ms ease;
 }
 
+.akari-cell > * {
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
 .akari-cell:hover {
-  background: #ffd166;
+  background: #66f5ff;
 }
 
 .akari-cell.wall {
@@ -164,6 +172,7 @@ body {
   width: 64%;
   height: 64%;
   object-fit: contain;
+  -webkit-user-drag: none;
 }
 
 .akari-x-mark {

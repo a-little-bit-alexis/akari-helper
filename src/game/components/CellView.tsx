@@ -1,18 +1,19 @@
 import lightbulbUrl from '../../../assets/lightbulb.svg';
-import type { CellState } from '../model/BoardState';
+import type { CellState, ReadOnlyCellState } from '../model/BoardState';
 
 interface Props {
-  cell: CellState;
+  cell: ReadOnlyCellState;
+  onClick: () => void;
 }
 
-export function CellView({ cell }: Props) {
+export function CellView({ cell, onClick }: Props) {
   const className = getClassName(cell);
   const numberView = getNumberView(cell);
   const bulbView = getBulbView(cell);
   const markView = getMarkView(cell);
 
   return (
-    <div className={className}>
+    <div className={className} onClick={onClick}>
       {numberView}
       {bulbView}
       {markView}
@@ -49,7 +50,7 @@ function getBulbView(cell: CellState): React.ReactNode {
   if (!cell.bulb) {
     return null;
   }
-  return <img className="akari-bulb-icon" src={lightbulbUrl} />;
+  return <img className="akari-bulb-icon" src={lightbulbUrl} draggable={false} />;
 }
 
 function getMarkView(cell: CellState): React.ReactNode {

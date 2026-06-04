@@ -1,7 +1,7 @@
 export interface CellState {
   wall?: true;
   bulb?: true;
-  lit?: true;
+  lit?: number; // number of bulbs lighting this cell
   number?: 0 | 1 | 2 | 3 | 4;
   xMark?: true;
   highlight?: string; // color, based on user input
