@@ -12,8 +12,20 @@ describe('parseBoard', () => {
     `);
 
     expect(board.cells).toEqual([
-      [{}, { wall: true }, { wall: true, number: 0 }, { wall: true, number: 1 }, {}],
-      [{ wall: true, number: 2 }, { wall: true, number: 3 }, { wall: true, number: 4 }, {}, {}],
+      [
+        { index: [0, 0] },
+        { index: [0, 1], wall: true },
+        { index: [0, 2], wall: true, number: 0 },
+        { index: [0, 3], wall: true, number: 1 },
+        { index: [0, 4] },
+      ],
+      [
+        { index: [1, 0], wall: true, number: 2 },
+        { index: [1, 1], wall: true, number: 3 },
+        { index: [1, 2], wall: true, number: 4 },
+        { index: [1, 3] },
+        { index: [1, 4] },
+      ],
     ]);
   });
 
@@ -39,8 +51,8 @@ describe('loadPuzzles', () => {
         name: 'Tiny puzzle',
         board: {
           cells: [
-            [{ wall: true }, {}],
-            [{}, { wall: true, number: 2 }],
+            [{ index: [0, 0], wall: true }, { index: [0, 1] }],
+            [{ index: [1, 0] }, { index: [1, 1], wall: true, number: 2 }],
           ],
         },
       },

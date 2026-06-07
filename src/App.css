@@ -126,7 +126,7 @@ body {
   grid-template-columns: repeat(10, 1fr);
   grid-template-rows: repeat(10, 1fr);
   flex: 0 1 auto;
-  overflow: hidden;
+  overflow: visible;
   border: 2px solid #27313b;
   background: #3b434c;
   gap: 1px;
@@ -134,6 +134,7 @@ body {
 
 .akari-cell {
   container-type: size;
+  position: relative;
   display: grid;
   place-items: center;
   min-width: 0;
@@ -145,6 +146,46 @@ body {
   transition:
     background-color 120ms ease,
     box-shadow 120ms ease;
+}
+
+.akari-cell.rule-violation:not(.number-rule-violation) {
+  box-shadow: inset 0 0 0 3px #d7263d;
+}
+
+.akari-cell.rule-violation:hover {
+  z-index: 2;
+}
+
+.akari-cell.rule-violation::after {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  width: max-content;
+  max-width: min(280px, 72vw);
+  border: 2px solid #27313b;
+  background: #fffdf7;
+  box-shadow: 0 4px 0 rgb(39 49 59 / 18%);
+  color: #27313b;
+  content: attr(data-rule-violation);
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1.2;
+  opacity: 0;
+  padding: 8px 10px;
+  pointer-events: none;
+  text-align: center;
+  transform: translate(-50%, 4px);
+  transition:
+    opacity 80ms ease,
+    transform 80ms ease;
+  visibility: hidden;
+  white-space: normal;
+}
+
+.akari-cell.rule-violation:hover::after {
+  opacity: 1;
+  transform: translate(-50%, 0);
+  visibility: visible;
 }
 
 .akari-cell > * {
@@ -166,6 +207,14 @@ body {
   font-weight: 500;
   line-height: 1;
   color: #fffdf7;
+}
+
+.akari-wall-number.satisfied {
+  color: #9e9e9e;
+}
+
+.akari-cell.number-rule-violation .akari-wall-number {
+  color: #ff4d5f;
 }
 
 .akari-bulb-icon {

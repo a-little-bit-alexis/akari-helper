@@ -1,9 +1,10 @@
+import type { Index } from '../game/model/board';
 import {
   createMutableBoardState,
   type BoardState,
   type ReadOnlyBoardState,
   type ReadOnlyCellState,
-} from '../game/model/BoardState';
+} from '../game/model/board';
 import type { PlaintextPuzzle } from './plaintext';
 import { PLAINTEXT_PUZZLES } from './plaintext';
 
@@ -55,7 +56,7 @@ export function parseBoard(plaintext: string): ReadOnlyBoardState {
   return { cells };
 }
 
-function parseRow(line: string): readonly ReadOnlyCellState[] {
+function parseRow(line: string, rowIndex: number): readonly ReadOnlyCellState[] {
   const firstBarIndex = line.indexOf('|');
   const secondBarIndex = line.indexOf('|', firstBarIndex + 1);
 
@@ -65,34 +66,35 @@ function parseRow(line: string): readonly ReadOnlyCellState[] {
 
   const row: ReadOnlyCellState[] = [];
   for (let index = firstBarIndex + 1; index < secondBarIndex; index++) {
-    row.push(parsePlaintextCell(line.charAt(index)));
+    const cellIndex = index - (firstBarIndex + 1);
+    row.push(parsePlaintextCell(line.charAt(index), [rowIndex, cellIndex]));
   }
   return row;
 }
 
-function parsePlaintextCell(char: string): ReadOnlyCellState {
+function parsePlaintextCell(char: string, index: Index): ReadOnlyCellState {
   if (!isPlaintextCell(char)) {
     throw new Error(`Invalid cell character: ${char}`);
   }
-  return parseCell(char);
+  return parseCell(char, index);
 }
 
-function parseCell(char: PlaintextCell): ReadOnlyCellState {
+function parseCell(char: PlaintextCell, index: Index): ReadOnlyCellState {
   switch (char) {
     case ' ':
-      return {};
+      return { index };
     case 'X':
-      return { wall: true };
+      return { index, wall: true };
     case '0':
-      return { wall: true, number: 0 };
+      return { index, wall: true, number: 0 };
     case '1':
-      return { wall: true, number: 1 };
+      return { index, wall: true, number: 1 };
     case '2':
-      return { wall: true, number: 2 };
+      return { index, wall: true, number: 2 };
     case '3':
-      return { wall: true, number: 3 };
+      return { index, wall: true, number: 3 };
     case '4':
-      return { wall: true, number: 4 };
+      return { index, wall: true, number: 4 };
   }
 }
 

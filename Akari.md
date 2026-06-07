@@ -16,4 +16,4 @@ The terminology used in this project (akari-helper) is slightly different:
 - A "white cell" is any cell that is not a "wall"
 - The "grid" is generally referred to as the "board"
 
-## 
+##

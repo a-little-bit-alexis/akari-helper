@@ -1,14 +1,13 @@
-import type { BoardState } from './BoardState';
-
-const DIRECTIONS = [
-  [-1, 0], // up
-  [1, 0], // down
-  [0, -1], // left
-  [0, 1], // right
-];
+import type { RuleViolation } from '../rules/coreRules';
+import { getRuleViolations } from '../rules/coreRules';
+import { lineOfSight, type BoardState } from './board';
 
 export class GameState {
-  constructor(public board: BoardState) {}
+  public ruleViolations: RuleViolation[];
+
+  constructor(public board: BoardState) {
+    this.ruleViolations = getRuleViolations(board);
+  }
 
   onCellClick(rowIndex: number, columnIndex: number): GameState {
     const cell = this.board.cells[rowIndex][columnIndex];
@@ -29,35 +28,18 @@ export class GameState {
   }
 
   private lightCells(rowIndex: number, columnIndex: number) {
-    for (const [r, c] of this.bulbAffectedCells(rowIndex, columnIndex)) {
+    for (const [r, c] of lineOfSight(this.board, [rowIndex, columnIndex], { includeStart: true })) {
       const cell = this.board.cells[r][c];
       cell.lit = (cell.lit ?? 0) + 1;
     }
   }
 
   private unlightCells(rowIndex: number, columnIndex: number) {
-    for (const [r, c] of this.bulbAffectedCells(rowIndex, columnIndex)) {
+    for (const [r, c] of lineOfSight(this.board, [rowIndex, columnIndex], { includeStart: true })) {
       const cell = this.board.cells[r][c];
       cell.lit = (cell.lit ?? 0) - 1;
       if (cell.lit <= 0) {
         delete cell.lit;
-      }
-    }
-  }
-
-  private *bulbAffectedCells(rowIndex: number, columnIndex: number): Generator<[number, number]> {
-    yield [rowIndex, columnIndex];
-    const cells = this.board.cells;
-    for (const [dRow, dColumn] of DIRECTIONS) {
-      let r = rowIndex + dRow;
-      let c = columnIndex + dColumn;
-      while (r >= 0 && r < cells.length && c >= 0 && c < cells[0].length) {
-        if (this.board.cells[r][c].wall) {
-          break;
-        }
-        yield [r, c];
-        r += dRow;
-        c += dColumn;
       }
     }
   }

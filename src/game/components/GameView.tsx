@@ -3,26 +3,14 @@ import { BoardView } from './BoardView';
 import { GameControls } from './GameControls';
 import { PuzzleSelector } from './PuzzleSelector';
 import { SolverControls } from './SolverControls';
-import { createLibrary } from '../../puzzles/library';
-import { GameState } from '../model/GameState';
+import type { GameState } from '../model/GameState';
 
-export function GameView() {
-  const library = React.useMemo(() => createLibrary(), []);
-  const [gameState, setGameState] = React.useState<GameState>(
-    () => new GameState(library.getInitialBoard(library.getNames()[0])),
-  );
+interface Props {
+  gameState: GameState;
+  setGameState: React.Dispatch<React.SetStateAction<GameState>>;
+}
 
-  // boardState.cells[10][7].xMark = true;
-
-  // boardState.cells[5][5].bulb = true;
-  // boardState.cells[5][3].lit = true;
-  // boardState.cells[5][4].lit = true;
-  // boardState.cells[5][5].lit = true;
-
-  // for (let i = 5; i < boardState.cells.length; i++) {
-  //   boardState.cells[i][5].lit = true;
-  // }
-
+export function GameView({ gameState, setGameState }: Props) {
   return (
     <div className="game-view">
       <PuzzleSelector />
@@ -32,6 +20,7 @@ export function GameView() {
           const newGameState = gameState.onCellClick(rowIndex, columnIndex);
           setGameState(newGameState);
         }}
+        ruleViolations={gameState.ruleViolations}
       />
       <GameControls />
       <SolverControls />
