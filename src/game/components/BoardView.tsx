@@ -1,31 +1,53 @@
-import type { ReadOnlyBoardState } from '../model/board';
+import { indicesEqual, type Index, type ReadOnlyBoardState } from '../model/board';
+import type { CellValue } from '../model/game';
 import type { RuleViolation } from '../rules/coreRules';
+import type { SolverAnnotation, SolverRecommendation } from '../solver/techniques';
 import { CellView } from './CellView';
 
 interface Props {
   board: ReadOnlyBoardState;
-  onCellClick: (rowIndex: number, columnIndex: number) => void;
+  onCellClick: (index: Index) => void;
   ruleViolations: RuleViolation[];
+  solverRecommendation: SolverRecommendation | undefined;
 }
 
-export function BoardView({ board, onCellClick, ruleViolations }: Props) {
+export function BoardView({ board, onCellClick, ruleViolations, solverRecommendation }: Props) {
   return (
-    <div className="akari-board" style={getBoardStyle(board)}>
-      {board.cells.flatMap((row, rowIndex) =>
-        row.map((cell, columnIndex) => (
-          <CellView
-            cell={cell}
-            board={board}
-            key={`${rowIndex}-${columnIndex}`}
-            onClick={() => {
-              onCellClick(rowIndex, columnIndex);
-            }}
-            ruleViolation={ruleViolations.find(
-              (v) => v.index[0] === rowIndex && v.index[1] === columnIndex,
-            )}
-          />
-        )),
-      )}
+    <div className="akari-board-area">
+      <div className="akari-board" style={getBoardStyle(board)}>
+        {board.cells.flatMap((row, rowIndex) =>
+          row.map((cell, columnIndex) => {
+            const solverRecommendedValue: CellValue | undefined = solverRecommendation?.moves.find(
+              (m) => indicesEqual(m.index, cell.index),
+            )?.value;
+            const solverAnnotation: SolverAnnotation | undefined =
+              solverRecommendation?.annotations?.find((annotation) =>
+                indicesEqual(annotation.index, cell.index),
+              );
+
+            return (
+              <CellView
+                cell={cell}
+                board={board}
+                key={`${rowIndex}-${columnIndex}`}
+                onClick={() => {
+                  onCellClick(cell.index);
+                }}
+                ruleViolation={ruleViolations.find((v) => indicesEqual(v.index, cell.index))}
+                solverRecommendedValue={solverRecommendedValue}
+                solverAnnotation={solverAnnotation}
+              />
+            );
+          }),
+        )}
+      </div>
+      <div className="solver-recommendation-explanation-wrapper">
+        {solverRecommendation !== undefined && (
+          <div className="solver-recommendation-explanation">
+            {solverRecommendation.explanation}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

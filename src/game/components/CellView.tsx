@@ -6,31 +6,54 @@ import {
   type ReadOnlyBoardState,
   type ReadOnlyCellState,
 } from '../model/board';
+import type { CellValue } from '../model/game';
 import type { RuleViolation } from '../rules/coreRules';
+import type { SolverAnnotation } from '../solver/techniques';
 
 interface Props {
   cell: ReadOnlyCellState;
   board: ReadOnlyBoardState;
   onClick: () => void;
   ruleViolation: RuleViolation | undefined;
+  solverRecommendedValue: CellValue | undefined;
+  solverAnnotation: SolverAnnotation | undefined;
 }
 
-export function CellView({ cell, board, onClick, ruleViolation }: Props) {
-  const className = getClassName(cell, ruleViolation);
+export function CellView({
+  cell,
+  board,
+  onClick,
+  ruleViolation,
+  solverRecommendedValue,
+  solverAnnotation,
+}: Props) {
+  const className = getClassName(cell, ruleViolation, solverRecommendedValue, solverAnnotation);
   const numberView = getNumberView(cell, board);
-  const bulbView = getBulbView(cell);
-  const markView = getMarkView(cell);
+  const bulbView = getBulbView(cell, solverRecommendedValue);
+  const markView = getMarkView(cell, solverRecommendedValue);
+  const annotationView = getAnnotationView(solverAnnotation);
 
   return (
-    <div className={className} data-rule-violation={ruleViolation?.message} onClick={onClick}>
+    <div
+      className={className}
+      data-rule-violation={ruleViolation?.message}
+      onClick={onClick}
+      style={getCellStyle(solverAnnotation)}
+    >
       {numberView}
       {bulbView}
       {markView}
+      {annotationView}
     </div>
   );
 }
 
-function getClassName(cell: CellState, ruleViolation: RuleViolation | undefined): string {
+function getClassName(
+  cell: CellState,
+  ruleViolation: RuleViolation | undefined,
+  solverRecommendedValue: CellValue | undefined,
+  solverAnnotation: SolverAnnotation | undefined,
+): string {
   const classes = ['akari-cell'];
 
   if (cell.wall) {
@@ -52,7 +75,25 @@ function getClassName(cell: CellState, ruleViolation: RuleViolation | undefined)
     }
   }
 
+  if (solverRecommendedValue !== undefined) {
+    classes.push('solver-recommended');
+  }
+
+  if (solverAnnotation !== undefined) {
+    classes.push('solver-annotation');
+  }
+
   return classes.join(' ');
+}
+
+function getCellStyle(solverAnnotation: SolverAnnotation | undefined): React.CSSProperties {
+  if (solverAnnotation === undefined) {
+    return {};
+  }
+
+  return {
+    '--solver-annotation-color': solverAnnotation.color,
+  } as React.CSSProperties;
 }
 
 function getNumberView(cell: CellState, board: ReadOnlyBoardState): React.ReactNode {
@@ -83,16 +124,68 @@ function getNumberView(cell: CellState, board: ReadOnlyBoardState): React.ReactN
   return <span className={classes.join(' ')}>{cell.number}</span>;
 }
 
-function getBulbView(cell: CellState): React.ReactNode {
-  if (!cell.bulb) {
+function getBulbView(
+  cell: CellState,
+  solverRecommendedValue: CellValue | undefined,
+): React.ReactNode {
+  const value = solverRecommendedValue ?? getCurrentCellValue(cell);
+  if (value !== 'bulb') {
     return null;
   }
-  return <img className="akari-bulb-icon" src={lightbulbUrl} draggable={false} />;
+  return (
+    <img
+      className={getValueClassName('akari-bulb-icon', solverRecommendedValue)}
+      src={lightbulbUrl}
+      draggable={false}
+    />
+  );
 }
 
-function getMarkView(cell: CellState): React.ReactNode {
-  if (!cell.xMark) {
+function getMarkView(
+  cell: CellState,
+  solverRecommendedValue: CellValue | undefined,
+): React.ReactNode {
+  const value = solverRecommendedValue ?? getCurrentCellValue(cell);
+  if (value !== 'xMark') {
     return null;
   }
-  return <span className="akari-x-mark">✕</span>;
+  return <span className={getValueClassName('akari-x-mark', solverRecommendedValue)}>✕</span>;
+}
+
+function getValueClassName(
+  baseClassName: string,
+  solverRecommendedValue: CellValue | undefined,
+): string {
+  if (solverRecommendedValue === undefined) {
+    return baseClassName;
+  }
+  return `${baseClassName} solver-recommended-value`;
+}
+
+function getCurrentCellValue(cell: CellState): CellValue {
+  if (cell.bulb) {
+    return 'bulb';
+  }
+  if (cell.xMark) {
+    return 'xMark';
+  }
+  return 'empty';
+}
+
+function getAnnotationView(solverAnnotation: SolverAnnotation | undefined): React.ReactNode {
+  if (solverAnnotation === undefined) {
+    return null;
+  }
+
+  return (
+    <span className="akari-cell-annotation-labels">
+      <span
+        className="akari-cell-annotation-label"
+        key={`${solverAnnotation.label}-${solverAnnotation.color}`}
+        style={{ color: solverAnnotation.color }}
+      >
+        {solverAnnotation.label}
+      </span>
+    </span>
+  );
 }
