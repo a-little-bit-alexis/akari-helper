@@ -126,13 +126,63 @@ function numberedWallOnlyHasNNeighboringFloorTiles(
   return undefined;
 }
 
+function putXsNextToNumberedWalls(
+  board: ReadOnlyBoardState,
+  config: SolverConfig,
+): SolverRecommendation | undefined {
+  if (config.maxComplexity < 1) {
+    return;
+  }
+
+  for (const wall of numberedWalls(board)) {
+    const { numBulbsRequiredTotal, numBulbsRemaining, potentialBulbCells } = analyzeNumberedWall(
+      board,
+      wall,
+    );
+
+    if (numBulbsRemaining > 0) {
+      continue;
+    }
+
+    if (potentialBulbCells.length < 1) {
+      continue;
+    }
+
+    return {
+      moves: potentialBulbCells.map((cell) => ({
+        index: cell.index,
+        value: 'xMark',
+      })),
+      annotations: [
+        {
+          index: wall.index,
+          color: 'green',
+        },
+        ...potentialBulbCells.map((cell) => ({
+          index: cell.index,
+          label: '',
+          color: '#ff5af1',
+        })),
+      ],
+      explanation: `This ${numBulbsRequiredTotal} has all its bulbs.`,
+      complexity: 0,
+    };
+  }
+
+  return undefined;
+}
+
 export const L0_Techniques: Technique[] = [
   {
     name: "Put X's next to all 0's",
     getRecommendation: putXsNextToAllZeroes,
     minComplexity: 0,
   },
-  // TODO: Put X's next to walls that already have all the bulbs they need
+  {
+    name: "Put X's next to numbered walls with enough bulbs",
+    getRecommendation: putXsNextToNumberedWalls,
+    minComplexity: 0,
+  },
   {
     name: 'Numbered Wall Only has N Neighboring Floor Tiles',
     getRecommendation: numberedWallOnlyHasNNeighboringFloorTiles,

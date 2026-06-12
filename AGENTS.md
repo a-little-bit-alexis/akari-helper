@@ -6,7 +6,7 @@ Use `./scripts/check.sh` after code changes. It builds the app, runs ESLint, che
 
 Do not add ARIA attributes or ARIA roles in this project. The app is a visual puzzle game intended for personal use, and the current project preference is to keep components free of ARIA-specific markup.
 
-Do not write tests for React components.
+Each React component should have its own file. Do not write tests for React components.
 
 # Purpose
 

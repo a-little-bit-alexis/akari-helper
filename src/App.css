@@ -102,6 +102,64 @@ body {
   border-top: 2px solid #27313b;
 }
 
+.solver-analysis-animation-stage {
+  display: grid;
+  width: 128px;
+  height: 128px;
+  place-items: center;
+  overflow: hidden;
+}
+
+.x-mark {
+  width: 58%;
+  height: 58%;
+  display: block;
+  object-fit: contain;
+  -webkit-user-drag: none;
+}
+
+.x-mark .stroke {
+  stroke: #ef476f;
+}
+
+.x-mark.preview .stroke {
+  stroke: #238636;
+}
+
+.animated-x .upstroke {
+  stroke-dasharray: 0.5;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: dash 500ms cubic-bezier(0.075, 0.82, 0.165, 1);
+  animation-fill-mode: forwards;
+}
+
+@keyframes dash {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.animated-x .downstroke {
+  stroke-dasharray: 0.5;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: dash 500ms cubic-bezier(0.175, 0.885, 0.32, 1);
+  animation-delay: 150ms;
+  animation-fill-mode: forwards;
+}
+
+.animated-x-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  -webkit-user-drag: none;
+}
+
 .placeholder-component {
   width: min(100%, 480px);
   border: 2px solid #27313b;
@@ -122,10 +180,17 @@ body {
 .game-controls {
   display: flex;
   width: min(100%, 480px);
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   gap: 12px;
   overflow: visible;
+}
+
+.game-control {
+  display: grid;
+  width: 104px;
+  justify-items: center;
+  gap: 6px;
 }
 
 .game-control-button {
@@ -144,7 +209,7 @@ body {
     transform 80ms ease;
 }
 
-.game-control-button::after {
+.game-control-button[data-tooltip]::after {
   position: absolute;
   bottom: calc(100% + 8px);
   left: 50%;
@@ -171,14 +236,14 @@ body {
   white-space: normal;
 }
 
-.game-control-button:hover::after {
+.game-control-button[data-tooltip]:hover::after {
   opacity: 1;
   transform: translate(-50%, 0);
   visibility: visible;
 }
 
 .game-control-button:hover {
-  background: #66f5ff;
+  background: #cceff1;
 }
 
 .game-control-button:disabled {
@@ -213,6 +278,19 @@ body {
 .game-control-button:disabled:active .game-control-icon {
   filter: grayscale(1);
   opacity: 0.35;
+}
+
+.game-control-label {
+  max-width: 100%;
+  color: #27313b;
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1.15;
+  text-align: center;
+}
+
+.game-control-button:disabled + .game-control-label {
+  color: #737373;
 }
 
 .game-control-icon {
@@ -326,7 +404,7 @@ body {
 }
 
 .akari-cell:hover {
-  background: #66f5ff;
+  background: #e0e8f0;
 }
 
 .akari-cell.wall {
@@ -358,17 +436,6 @@ body {
 .akari-bulb-icon.solver-recommended-value {
   filter: brightness(0) saturate(100%) invert(44%) sepia(88%) saturate(481%) hue-rotate(80deg)
     brightness(88%) contrast(88%);
-}
-
-.akari-x-mark {
-  font-size: min(50cqw, 50cqh);
-  font-weight: 700;
-  line-height: 1;
-  color: #ef476f;
-}
-
-.akari-x-mark.solver-recommended-value {
-  color: #238636;
 }
 
 .akari-cell.lit {

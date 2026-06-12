@@ -9,6 +9,7 @@ import {
 import type { CellValue } from '../model/game';
 import type { RuleViolation } from '../rules/coreRules';
 import type { SolverAnnotation } from '../solver/techniques';
+import { XMark } from './XMark';
 
 interface Props {
   cell: ReadOnlyCellState;
@@ -17,6 +18,7 @@ interface Props {
   ruleViolation: RuleViolation | undefined;
   solverRecommendedValue: CellValue | undefined;
   solverAnnotation: SolverAnnotation | undefined;
+  animateToValue: CellValue | undefined;
 }
 
 export function CellView({
@@ -26,10 +28,11 @@ export function CellView({
   ruleViolation,
   solverRecommendedValue,
   solverAnnotation,
+  animateToValue,
 }: Props) {
   const className = getClassName(cell, ruleViolation, solverRecommendedValue, solverAnnotation);
   const numberView = getNumberView(cell, board);
-  const bulbView = getBulbView(cell, solverRecommendedValue);
+  const bulbView = getBulbView(cell, solverRecommendedValue, animateToValue);
   const markView = getMarkView(cell, solverRecommendedValue);
   const annotationView = getAnnotationView(solverAnnotation);
 
@@ -127,7 +130,27 @@ function getNumberView(cell: CellState, board: ReadOnlyBoardState): React.ReactN
 function getBulbView(
   cell: CellState,
   solverRecommendedValue: CellValue | undefined,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _animateToValue: CellValue | undefined,
 ): React.ReactNode {
+  // TODO add the animation config (delay time, duration) as a prop here, and then possibly push all the
+  // bulb rendering details into a subcomponent.
+  // Use the latching method generated in the ChatGPT chat to start and cancel animations:
+  // * If animateToValue is equal to the current value and not equal to the previous value, initiate an animation
+  //   from the previous value to the current value
+  // * If animateToValue is undefined but there's an ongoing animation, continue it, UNLESS the current value is different
+  //   from what the value was when the animation started
+  // * If animateToValue is different from the current value, cancel any ongoing animation
+
+  // Actually all of this can probably just be implemented as:
+  // type LightBulbProps = { previousValue: CellValue, currentValue: CellValue, animationConfig: {delay, duration} | undefined}
+  //
+  // And then the parent is responsible for tracking these things whenever a change occurs. All the child component has to do is
+  // keep track of any ongoing transition and the <prevValue, currentValue> that were present when it was initiated, and cancel the
+  // transition if currentValue changes.
+  //
+  // ... ok TBD, going to have to workshop this
+
   const value = solverRecommendedValue ?? getCurrentCellValue(cell);
   if (value !== 'bulb') {
     return null;
@@ -149,7 +172,7 @@ function getMarkView(
   if (value !== 'xMark') {
     return null;
   }
-  return <span className={getValueClassName('akari-x-mark', solverRecommendedValue)}>✕</span>;
+  return <XMark isRecommendationPreview={solverRecommendedValue !== undefined} />;
 }
 
 function getValueClassName(

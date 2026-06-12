@@ -156,6 +156,8 @@ function bulbCannotGoOnCornerOfNumber(
       complexity: 1,
     };
   }
+
+  return undefined;
 }
 
 export const L1_Techniques: Technique[] = [

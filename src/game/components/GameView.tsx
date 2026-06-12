@@ -3,7 +3,7 @@ import { GameControls } from './GameControls';
 import { PuzzleSelector } from './PuzzleSelector';
 import { SolverControls } from './SolverControls';
 import type { GameState } from '../model/GameState';
-import type { SolverRecommendation } from '../solver/techniques';
+import type { SolverMove, SolverRecommendation } from '../solver/techniques';
 import React from 'react';
 
 interface Props {
@@ -16,6 +16,8 @@ export function GameView({ gameState, updateGameState }: Props) {
     SolverRecommendation | undefined
   >(undefined);
 
+  const [animatingCells, setAnimatingCells] = React.useState<SolverMove[] | undefined>(undefined);
+
   return (
     <div className="game-view">
       <PuzzleSelector />
@@ -27,6 +29,7 @@ export function GameView({ gameState, updateGameState }: Props) {
         }}
         ruleViolations={gameState.ruleViolations}
         solverRecommendation={solverRecommendation}
+        animatingCells={animatingCells}
       />
       <GameControls
         canRedo={gameState.canRedo()}
@@ -42,10 +45,11 @@ export function GameView({ gameState, updateGameState }: Props) {
       />
       <SolverControls
         board={gameState.board}
+        solverRecommendation={solverRecommendation}
         setSolverRecommendation={setSolverRecommendation}
-        canApplyRecommendation={solverRecommendation !== undefined}
-        applySolverRecommendation={() => {
+        applySolverRecommendation={(solverRecommendation: SolverRecommendation) => {
           gameState.onApplySolverRecommendation(solverRecommendation);
+          setAnimatingCells(solverRecommendation.moves);
           setSolverRecommendation(undefined);
           updateGameState();
         }}

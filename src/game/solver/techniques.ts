@@ -10,7 +10,7 @@ export interface SolverMove {
 
 export interface SolverAnnotation {
   index: Index;
-  label: string;
+  label?: string;
   color: string;
 }
 

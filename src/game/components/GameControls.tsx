@@ -1,5 +1,6 @@
 import redoUrl from '../../../assets/redo.svg';
 import undoUrl from '../../../assets/undo.svg';
+import { ControlButton } from './ControlButton';
 
 interface Props {
   canUndo: boolean;
@@ -11,24 +12,8 @@ interface Props {
 export function GameControls({ canUndo, canRedo, onUndo, onRedo }: Props) {
   return (
     <div className="game-controls">
-      <button
-        className="game-control-button"
-        data-tooltip="Undo"
-        disabled={!canUndo}
-        type="button"
-        onClick={onUndo}
-      >
-        <img className="game-control-icon" src={undoUrl} draggable={false} />
-      </button>
-      <button
-        className="game-control-button"
-        data-tooltip="Redo"
-        disabled={!canRedo}
-        type="button"
-        onClick={onRedo}
-      >
-        <img className="game-control-icon" src={redoUrl} draggable={false} />
-      </button>
+      <ControlButton disabled={!canUndo} iconUrl={undoUrl} label="Undo" onClick={onUndo} />
+      <ControlButton disabled={!canRedo} iconUrl={redoUrl} label="Redo" onClick={onRedo} />
     </div>
   );
 }
