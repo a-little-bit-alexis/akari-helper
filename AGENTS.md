@@ -2,7 +2,7 @@
 
 This is a React, TypeScript, and npm project for a personal Akari puzzle helper, called `akari-helper`.
 
-Use `./scripts/check.sh` after code changes. It builds the app, runs ESLint, checks Prettier formatting, and runs Jest.
+When modifying TypeScript code, use `./scripts/check.sh` after code changes. It builds the app, runs ESLint, checks Prettier formatting, and runs Jest. You don't need to run the script after Python or other script changes.
 
 Do not add ARIA attributes or ARIA roles in this project. The app is a visual puzzle game intended for personal use, and the current project preference is to keep components free of ARIA-specific markup.
 

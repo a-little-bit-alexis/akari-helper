@@ -7,12 +7,15 @@ import { createLibrary } from './puzzles/library';
 
 interface GS {
   gameState: GameState;
+  puzzleName: string;
 }
 
 export function App() {
   const library = React.useMemo(() => createLibrary(), []);
-  const [{ gameState }, setGS] = React.useState<GS>(() => ({
-    gameState: new GameState(library.getInitialBoard(library.getNames()[0])),
+  const puzzleNames = React.useMemo(() => library.getNames(), [library]);
+  const [{ gameState, puzzleName }, setGS] = React.useState<GS>(() => ({
+    gameState: new GameState(library.getInitialBoard(puzzleNames[0])),
+    puzzleName: puzzleNames[0],
   }));
 
   return (
@@ -22,8 +25,16 @@ export function App() {
         <section className="app-column">
           <GameView
             gameState={gameState}
+            puzzleNames={puzzleNames}
+            selectedPuzzleName={puzzleName}
+            onSelectPuzzle={(puzzleName) => {
+              setGS({
+                gameState: new GameState(library.getInitialBoard(puzzleName)),
+                puzzleName,
+              });
+            }}
             updateGameState={() => {
-              setGS({ gameState });
+              setGS((state) => ({ ...state, gameState }));
             }}
           />
         </section>

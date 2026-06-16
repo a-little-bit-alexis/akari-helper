@@ -3,7 +3,7 @@ export interface PlaintextPuzzle {
   board: string;
 }
 
-export const PLAINTEXT_PUZZLES: PlaintextPuzzle[] = [
+export const HARDCODED_PLAINTEXT_PUZZLES: PlaintextPuzzle[] = [
   {
     name: 'Expert 2 - 14x14 - Puzzle 06',
     board: `

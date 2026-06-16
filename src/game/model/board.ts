@@ -80,6 +80,19 @@ export function* adjacentCells(
   }
 }
 
+export function hasAdjacentNumberedWall(
+  board: ReadOnlyBoardState,
+  cell: ReadOnlyCellState,
+): boolean {
+  for (const adj of adjacentCells(board, cell.index)) {
+    if (isNumberedWall(adj)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 export function* pairs<T>(arr: T[]): Generator<[T, T]> {
   for (let i = 0; i < arr.length; i++) {
     for (let j = i + 1; j < arr.length; j++) {
@@ -233,6 +246,18 @@ function equalIndices(a: Index[], b: Index[]): boolean {
   return true;
 }
 
+export function idxCmp(a: Index, b: Index): number {
+  return a[0] === b[0] ? a[1] - b[1] : a[0] - b[0];
+}
+
+export function cellIdxCmp(a: ReadOnlyCellState, b: ReadOnlyCellState): number {
+  return idxCmp(a.index, b.index);
+}
+
+export function sameCells(a: ReadOnlyCellState[], b: ReadOnlyCellState[]): boolean {
+  return equalIndices(a.map((c) => c.index).sort(idxCmp), b.map((c) => c.index).sort(idxCmp));
+}
+
 export function* cellLineOfSight(
   board: ReadOnlyBoardState,
   start: ReadOnlyCellState,
@@ -279,6 +304,10 @@ export function needsToBeLit(cell: ReadOnlyCellState): boolean {
 
 export function potentialBulb(cell: ReadOnlyCellState): boolean {
   return !cell.wall && !cell.bulb && !cell.lit && !cell.xMark;
+}
+
+export function isNumberedWall(cell: ReadOnlyCellState): boolean {
+  return cell.wall !== undefined && cell.number !== undefined;
 }
 
 export interface NumberedWallAnalysis {

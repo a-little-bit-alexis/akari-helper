@@ -5,8 +5,9 @@ import {
   type ReadOnlyBoardState,
   type ReadOnlyCellState,
 } from '../game/model/board';
+import { PLAINTEXT_PUZZLES } from './generatedPlaintext';
 import type { PlaintextPuzzle } from './plaintext';
-import { PLAINTEXT_PUZZLES } from './plaintext';
+import { HARDCODED_PLAINTEXT_PUZZLES } from './plaintext';
 
 export type PlaintextCell = ' ' | 'X' | '0' | '1' | '2' | '3' | '4';
 
@@ -16,7 +17,10 @@ export interface Library {
 }
 
 export function createLibrary(): Library {
-  const puzzles = loadPuzzles(PLAINTEXT_PUZZLES);
+  const hardcoded = loadPuzzles(HARDCODED_PLAINTEXT_PUZZLES);
+  const generated = loadPuzzles(PLAINTEXT_PUZZLES);
+  const puzzles = [...generated, ...hardcoded];
+
   const puzzlesByName = new Map(puzzles.map((puzzle) => [puzzle.name, puzzle]));
 
   return {

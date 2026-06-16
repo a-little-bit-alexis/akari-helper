@@ -8,10 +8,19 @@ import React from 'react';
 
 interface Props {
   gameState: GameState;
+  onSelectPuzzle: (puzzleName: string) => void;
+  puzzleNames: string[];
+  selectedPuzzleName: string;
   updateGameState: () => void;
 }
 
-export function GameView({ gameState, updateGameState }: Props) {
+export function GameView({
+  gameState,
+  onSelectPuzzle,
+  puzzleNames,
+  selectedPuzzleName,
+  updateGameState,
+}: Props) {
   const [solverRecommendation, setSolverRecommendation] = React.useState<
     SolverRecommendation | undefined
   >(undefined);
@@ -20,7 +29,15 @@ export function GameView({ gameState, updateGameState }: Props) {
 
   return (
     <div className="game-view">
-      <PuzzleSelector />
+      <PuzzleSelector
+        onSelect={(puzzleName) => {
+          setAnimatingCells(undefined);
+          setSolverRecommendation(undefined);
+          onSelectPuzzle(puzzleName);
+        }}
+        puzzleNames={puzzleNames}
+        selectedPuzzleName={selectedPuzzleName}
+      />
       <BoardView
         board={gameState.board}
         onCellClick={(index) => {

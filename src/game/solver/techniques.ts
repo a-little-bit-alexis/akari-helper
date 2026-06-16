@@ -2,6 +2,7 @@ import type { Index, ReadOnlyBoardState } from '../model/board';
 import type { CellValue } from '../model/game';
 import { L0_Techniques } from './l0';
 import { L1_Techniques } from './l1';
+import { L2_Techniques } from './l2';
 
 export interface SolverMove {
   index: Index;
@@ -34,9 +35,11 @@ export interface Technique {
   minComplexity: number;
 }
 
-export const ALL_TECHNIQUES: Technique[] = [...L0_Techniques, ...L1_Techniques].sort(
-  (a, b) => a.minComplexity - b.minComplexity,
-);
+export const ALL_TECHNIQUES: Technique[] = [
+  ...L0_Techniques,
+  ...L1_Techniques,
+  ...L2_Techniques,
+].sort((a, b) => a.minComplexity - b.minComplexity);
 
 export function getRecommendation(
   board: ReadOnlyBoardState,
