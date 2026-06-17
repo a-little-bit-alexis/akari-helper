@@ -1,37 +1,25 @@
-import {
-  adjacentBulbCount,
-  adjacentIndices,
-  lineOfSight,
-  type Index,
-  type ReadOnlyBoardState,
-} from '../model/board';
+import type { Board } from '../model/Board';
+import type { Cell } from '../model/Cell';
+import type { Index } from '../model/CellIndex';
 
-export function isSolved(board: ReadOnlyBoardState): boolean {
-  for (let i = 0; i < board.cells.length; i++) {
-    for (let j = 0; j < board.cells[i].length; j++) {
-      const cell = board.cells[i][j];
-      if (!cell.wall && !cell.lit) {
-        return false;
-      }
+export function isSolved(board: Board): boolean {
+  for (const cell of board.cells()) {
+    if (cell.needsToBeLit()) {
+      return false;
+    }
 
-      if (cell.bulb) {
-        for (const [r, c] of lineOfSight(board, [i, j], { includeStart: false })) {
-          if (board.cells[r][c].bulb) {
-            return false;
-          }
-        }
-      }
-
-      if (cell.wall && cell.number !== undefined) {
-        let bulbCount = 0;
-        for (const [r, c] of adjacentIndices(board, [i, j])) {
-          if (board.cells[r][c].bulb) {
-            bulbCount++;
-          }
-        }
-        if (bulbCount !== cell.number) {
+    if (cell.hasBulb()) {
+      for (const other of cell.lineOfSight({ includeStart: false })) {
+        if (other.hasBulb()) {
           return false;
         }
+      }
+    }
+
+    if (cell.isWall && cell.num !== undefined) {
+      const { numBulbsRemaining } = cell.numberedWallAnalysis();
+      if (numBulbsRemaining !== 0) {
+        return false;
       }
     }
   }
@@ -44,15 +32,13 @@ export interface RuleViolation {
   message: string;
 }
 
-export function getRuleViolations(board: ReadOnlyBoardState): RuleViolation[] {
+export function getRuleViolations(board: Board): RuleViolation[] {
   const violations: RuleViolation[] = [];
   for (const rule of RULES) {
-    for (let i = 0; i < board.cells.length; i++) {
-      for (let j = 0; j < board.cells[i].length; j++) {
-        const violation = rule.check(board, [i, j]);
-        if (violation !== undefined) {
-          violations.push(violation);
-        }
+    for (const cell of board.cells()) {
+      const violation = rule.check(cell);
+      if (violation !== undefined) {
+        violations.push(violation);
       }
     }
   }
@@ -61,40 +47,45 @@ export function getRuleViolations(board: ReadOnlyBoardState): RuleViolation[] {
 
 interface Rule {
   name: string;
-  check: (board: ReadOnlyBoardState, index: Index) => RuleViolation | undefined;
+  check: (cell: Cell) => RuleViolation | undefined;
 }
 
 const RULES: Rule[] = [
   {
     name: 'Too many bulbs next to a number',
-    check: (board, [row, col]) => {
-      const cell = board.cells[row][col];
-      if (cell.wall && cell.number !== undefined) {
-        const bulbCount = adjacentBulbCount(board, [row, col]);
-        if (bulbCount > cell.number) {
-          return {
-            index: [row, col],
-            message: `Too many bulbs adjacent to this number`,
-          };
-        }
+    check: (cell: Cell): RuleViolation | undefined => {
+      const num = cell.num;
+      if (num === undefined) {
+        return undefined;
       }
+
+      const adjBulbCount = cell.adjacentBulbCount();
+      if (adjBulbCount > num) {
+        return {
+          index: cell.index,
+          message: `Too many bulbs adjacent to this number`,
+        };
+      }
+
       return undefined;
     },
   },
   {
     name: 'Bulbs illuminating each other',
-    check: (board, [row, col]) => {
-      const cell = board.cells[row][col];
-      if (cell.bulb) {
-        for (const [r, c] of lineOfSight(board, [row, col], { includeStart: false })) {
-          if (board.cells[r][c].bulb) {
-            return {
-              index: [row, col],
-              message: 'This bulb illuminates another bulb',
-            };
-          }
+    check: (cell: Cell): RuleViolation | undefined => {
+      if (!cell.hasBulb()) {
+        return undefined;
+      }
+
+      for (const other of cell.lineOfSight({ includeStart: false })) {
+        if (other.hasBulb()) {
+          return {
+            index: cell.index,
+            message: 'This bulb illuminates another bulb',
+          };
         }
       }
+
       return undefined;
     },
   },

@@ -1,50 +1,35 @@
-import type { Index, ReadOnlyCellState } from '../model/board';
-import {
-  analyzeNumberedWall,
-  cellAtIndex,
-  cellLineOfSight,
-  cells,
-  indicesEqual,
-  intersections,
-  needsToBeLit,
-  numberedWalls,
-  pairs,
-  potentialBulb,
-  type ReadOnlyBoardState,
-} from '../model/board';
+import * as Lists from '../../utils/lists';
+import * as Scanner from '../../utils/scanner';
+import type { Board } from '../model/Board';
+import type { Cell } from '../model/Cell';
+import type { Index } from '../model/CellIndex';
 import type { SolverConfig, SolverRecommendation, Technique } from './techniques';
 
 function floorCanOnlyBeLitByOneTile(
-  board: ReadOnlyBoardState,
+  board: Board,
   config: SolverConfig,
 ): SolverRecommendation | undefined {
   if (config.maxComplexity < 1) {
     return;
   }
 
-  for (const cell of cells(board)) {
-    if (!needsToBeLit(cell)) {
-      continue;
-    }
+  for (const cell of board.unlitCells()) {
+    const blanks: Cell[] = [];
+    for (const blank of cell.lineOfSight({ includeStart: true, blanksOnly: true })) {
+      blanks.push(blank);
 
-    const potentialLights: ReadOnlyCellState[] = [];
-    for (const otherCell of cellLineOfSight(board, cell, { includeStart: true })) {
-      if (potentialBulb(otherCell)) {
-        potentialLights.push(otherCell);
-      }
-
-      if (potentialLights.length > 1) {
+      if (blanks.length > 1) {
         break;
       }
     }
 
-    if (potentialLights.length !== 1) {
+    if (blanks.length !== 1) {
       continue;
     }
 
-    const bulbMustGoAt = potentialLights[0].index;
+    const blank: Cell = blanks[0];
 
-    const lightsItself = indicesEqual(bulbMustGoAt, cell.index);
+    const lightsItself = cell.index.equals(blank.index);
 
     let explanation = '';
     if (lightsItself) {
@@ -56,7 +41,7 @@ function floorCanOnlyBeLitByOneTile(
     return {
       moves: [
         {
-          index: bulbMustGoAt,
+          index: blank.index,
           value: 'bulb',
         },
       ],
@@ -65,8 +50,8 @@ function floorCanOnlyBeLitByOneTile(
         : [
             {
               index: cell.index,
-              label: 'Unlit cell',
-              color: 'green',
+              label: '',
+              color: 'cyan',
             },
           ],
       explanation,
@@ -78,18 +63,15 @@ function floorCanOnlyBeLitByOneTile(
 }
 
 function bulbCannotGoOnCornerOfNumber(
-  board: ReadOnlyBoardState,
+  board: Board,
   config: SolverConfig,
 ): SolverRecommendation | undefined {
   if (config.maxComplexity < 1) {
     return;
   }
 
-  for (const wall of numberedWalls(board)) {
-    const { numBulbsRequiredTotal, numBulbsRemaining, potentialBulbCells } = analyzeNumberedWall(
-      board,
-      wall,
-    );
+  for (const wall of board.numberedWalls()) {
+    const { numBulbsRequiredTotal, numBulbsRemaining, blankCells } = wall.numberedWallAnalysis();
 
     if (numBulbsRemaining < 1) {
       continue;
@@ -97,27 +79,27 @@ function bulbCannotGoOnCornerOfNumber(
 
     // e.g., this rule applies if a wall needs 2 more bulbs
     // and there are 3 potential spots for them
-    if (!(numBulbsRemaining + 1 === potentialBulbCells.length)) {
+    if (!(numBulbsRemaining + 1 === blankCells.length)) {
       continue;
     }
 
-    const corners: Index[] = [];
+    const cornersThatNeedXMarks: Index[] = [];
 
-    for (const [potA, potB] of pairs(potentialBulbCells)) {
-      const intersectingIndices = intersections(board, potA.index, potB.index);
+    for (const [blankA, blankB] of Lists.pairs(blankCells)) {
+      const intersectingCells = Scanner.intersections(blankA, blankB);
 
-      for (const cornerIndex of intersectingIndices) {
-        if (cellAtIndex(board, cornerIndex).xMark === true) {
+      for (const corner of intersectingCells) {
+        if (!corner.isBlank()) {
           continue;
         }
 
-        if (!corners.some((c) => indicesEqual(c, cornerIndex))) {
-          corners.push(cornerIndex);
+        if (!cornersThatNeedXMarks.some((c) => c.equals(corner.index))) {
+          cornersThatNeedXMarks.push(corner.index);
         }
       }
     }
 
-    if (corners.length === 0) {
+    if (cornersThatNeedXMarks.length === 0) {
       continue;
     }
 
@@ -126,11 +108,11 @@ function bulbCannotGoOnCornerOfNumber(
     const more = numBulbsRemaining < numBulbsRequiredTotal ? ' more' : '';
     const s = pluralBulbsRemaining ? 's' : '';
 
-    const pluralCornersToMark = corners.length > 1;
+    const pluralCornersToMark = cornersThatNeedXMarks.length > 1;
     const cornerTiles = pluralCornersToMark ? 'corner tiles' : 'corner tile';
 
     return {
-      moves: corners.map((index) => ({
+      moves: cornersThatNeedXMarks.map((index) => ({
         index,
         value: 'xMark',
       })),
@@ -138,19 +120,19 @@ function bulbCannotGoOnCornerOfNumber(
         {
           index: wall.index,
           label: '',
-          color: 'orange',
+          color: '#18a3df',
         },
-        ...potentialBulbCells.map((cell) => ({
+        ...blankCells.map((cell) => ({
           index: cell.index,
           label: '',
-          color: '#ff5af1',
+          color: '#7bd0f5',
         })),
       ],
       explanation:
-        `The wall (orange) needs ${numBulbsRemaining}${more} light bulb${s} ` +
-        `out of the ${potentialBulbCells.length} adjacent empty tiles (pink). ` +
+        `This wall needs ${numBulbsRemaining}${more} light bulb${s} ` +
+        `out of the ${blankCells.length} adjacent blank tiles (blue). ` +
         `The marked ${cornerTiles} (green) would illuminate ` +
-        (potentialBulbCells.length === 2
+        (blankCells.length === 2
           ? 'both of the empty tiles.'
           : '2 of these empty tiles, leaving too few remaining.'),
       complexity: 1,

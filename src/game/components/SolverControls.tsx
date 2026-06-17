@@ -1,12 +1,12 @@
 import cancelUrl from '../../../assets/cancel.svg';
 import checkUrl from '../../../assets/check.svg';
 import wandUrl from '../../../assets/wand.svg';
-import type { ReadOnlyBoardState } from '../model/board';
+import type { Board } from '../model/Board';
 import { getRecommendation, type SolverRecommendation } from '../solver/techniques';
 import { ControlButton } from './ControlButton';
 
 interface Props {
-  board: ReadOnlyBoardState;
+  board: Board;
   solverRecommendation: SolverRecommendation | undefined;
   setSolverRecommendation: (rec: SolverRecommendation | undefined) => void;
   applySolverRecommendation: (solverRecommendation: SolverRecommendation) => void;

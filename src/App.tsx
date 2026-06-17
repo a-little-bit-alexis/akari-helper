@@ -1,7 +1,6 @@
 import React from 'react';
 import './App.css';
 import { GameView } from './game/components/GameView';
-import { SolverView } from './game/components/SolverView';
 import { GameState } from './game/model/GameState';
 import { createLibrary } from './puzzles/library';
 
@@ -37,9 +36,6 @@ export function App() {
               setGS((state) => ({ ...state, gameState }));
             }}
           />
-        </section>
-        <section className="app-column">
-          <SolverView gameState={gameState} />
         </section>
       </main>
     </div>

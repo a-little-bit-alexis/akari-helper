@@ -1,49 +1,39 @@
-import type { ReadOnlyCellState } from '../model/board';
-import {
-  cellLineOfSight,
-  cells,
-  hasAdjacentNumberedWall,
-  indicesEqual,
-  needsToBeLit,
-  potentialBulb,
-  sameCells,
-  type ReadOnlyBoardState,
-} from '../model/board';
+import * as Lists from '../../utils/lists';
+import type { Board } from '../model/Board';
+import type { Cell } from '../model/Cell';
 import type { SolverConfig, SolverRecommendation, Technique } from './techniques';
 
 function bulbsWouldLightUpSameCells(
-  board: ReadOnlyBoardState,
+  board: Board,
   config: SolverConfig,
 ): SolverRecommendation | undefined {
   if (config.maxComplexity < 2) {
     return;
   }
 
-  function isRedundancyCandidate(cell: ReadOnlyCellState): boolean {
-    return potentialBulb(cell) && !hasAdjacentNumberedWall(board, cell);
+  function isRedundancyCandidate(cell: Cell): boolean {
+    return cell.isBlank() && !cell.hasAdjacentNumberedWall();
   }
 
-  let cellA: ReadOnlyCellState | undefined;
-  let cellB: ReadOnlyCellState | undefined;
-  let lightUpSet: ReadOnlyCellState[] | undefined;
+  let cellA: Cell | undefined;
+  let cellB: Cell | undefined;
+  let lightUpSet: Cell[] | undefined;
 
-  for (const cell of cells(board)) {
+  for (const cell of board.cells()) {
     if (!isRedundancyCandidate(cell)) {
       continue;
     }
 
-    const cellsThatWouldLightUp = [...cellLineOfSight(board, cell, { includeStart: true })].filter(
-      (c) => needsToBeLit(c),
-    );
+    const cellsThatWouldLightUp = [...cell.lineOfSight({ includeStart: true, unlitsOnly: true })];
 
     for (const redundancyCandidate of cellsThatWouldLightUp.filter(
-      (c) => isRedundancyCandidate(c) && !indicesEqual(c.index, cell.index),
+      (c) => isRedundancyCandidate(c) && !cell.index.equals(c.index),
     )) {
       const candidateCellsThatWouldLightUp = [
-        ...cellLineOfSight(board, redundancyCandidate, { includeStart: true }),
-      ].filter(needsToBeLit);
+        ...redundancyCandidate.lineOfSight({ includeStart: true, unlitsOnly: true }),
+      ];
 
-      if (sameCells(cellsThatWouldLightUp, candidateCellsThatWouldLightUp)) {
+      if (Lists.sameCells(cellsThatWouldLightUp, candidateCellsThatWouldLightUp)) {
         cellA = cell;
         cellB = redundancyCandidate;
         lightUpSet = cellsThatWouldLightUp;
@@ -61,7 +51,7 @@ function bulbsWouldLightUpSameCells(
   }
 
   const setDiff = lightUpSet.filter(
-    (c) => !indicesEqual(cellA.index, c.index) && !indicesEqual(cellB.index, c.index),
+    (c) => !cellA.index.equals(c.index) && !cellB.index.equals(c.index),
   );
 
   return {

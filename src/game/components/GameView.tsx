@@ -30,7 +30,7 @@ export function GameView({
   return (
     <div className="game-view">
       <PuzzleSelector
-        onSelect={(puzzleName) => {
+        onSelect={(puzzleName: string) => {
           setAnimatingCells(undefined);
           setSolverRecommendation(undefined);
           onSelectPuzzle(puzzleName);

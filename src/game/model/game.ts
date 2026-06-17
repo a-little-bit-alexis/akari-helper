@@ -1,13 +1,12 @@
-import type { Index } from './board';
-
-export type CellValue = 'empty' | 'xMark' | 'bulb';
+import type { CellInputValue } from './Cell';
+import type { Index } from './CellIndex';
 
 export type Move =
   | {
       index: Index;
       type: 'ChangeCellValue';
-      from: CellValue;
-      to: CellValue;
+      from: CellInputValue;
+      to: CellInputValue;
     }
   | {
       index: Index;

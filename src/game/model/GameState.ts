@@ -1,8 +1,8 @@
 import type { RuleViolation } from '../rules/coreRules';
 import { getRuleViolations } from '../rules/coreRules';
-import type { SolverRecommendation } from '../solver/techniques';
-import type { Index } from './board';
-import { cellAtIndex, cellValAtIndex, lineOfSight, type BoardState } from './board';
+import type { SolverMove, SolverRecommendation } from '../solver/techniques';
+import type { Board } from './Board';
+import type { Index } from './CellIndex';
 import type { Move } from './game';
 
 export class GameState {
@@ -12,7 +12,7 @@ export class GameState {
   private redoStack: Move[] = [];
 
   constructor(
-    public board: BoardState,
+    public board: Board,
     moveHistory?: Move[],
     redoStack?: Move[],
   ) {
@@ -50,18 +50,18 @@ export class GameState {
   }
 
   onCellClick(index: Index): void {
-    const [rowIndex, columnIndex] = index;
-    const cell = this.board.cells[rowIndex][columnIndex];
-    if (cell.wall) {
+    const cell = this.board.getCell(index);
+
+    if (cell.isWall) {
       return;
-    } else if (cell.bulb) {
+    } else if (cell.hasBulb()) {
       this.doMoveAndAddToHistory({
         type: 'ChangeCellValue',
         index,
         from: 'bulb',
-        to: 'empty',
+        to: 'blank',
       });
-    } else if (cell.xMark) {
+    } else if (cell.hasXMark()) {
       this.doMoveAndAddToHistory({
         type: 'ChangeCellValue',
         index,
@@ -72,7 +72,7 @@ export class GameState {
       this.doMoveAndAddToHistory({
         type: 'ChangeCellValue',
         index,
-        from: 'empty',
+        from: 'blank',
         to: 'xMark',
       });
     }
@@ -85,12 +85,25 @@ export class GameState {
 
     this.doMoveAndAddToHistory({
       type: 'CompoundMove',
-      moves: rec.moves.map(({ index, value }) => ({
-        type: 'ChangeCellValue',
-        index,
-        from: cellValAtIndex(this.board, index),
-        to: value,
-      })),
+      moves: rec.moves.map(({ index, value }: SolverMove): Move => {
+        const cell = this.board.getCell(index);
+        if (cell.isWall) {
+          throw new Error('Cannot change value of a wall cell');
+        }
+
+        const currentValue = cell.inputValue;
+
+        if (currentValue === undefined) {
+          throw new Error('Unexpected undefined cell value');
+        }
+
+        return {
+          type: 'ChangeCellValue',
+          index,
+          from: currentValue,
+          to: value,
+        };
+      }),
     });
   }
 
@@ -149,28 +162,32 @@ export class GameState {
   }
 
   private doChangeCellValueMove(move: Extract<Move, { type: 'ChangeCellValue' }>): void {
-    const cell = cellAtIndex(this.board, move.index);
-    if (cell.wall) {
+    const cell = this.board.getCell(move.index);
+
+    if (cell.isWall) {
       throw new Error('Cannot change value of a wall cell');
     }
 
-    if (move.from === 'xMark' && move.to !== 'xMark') {
-      delete cell.xMark;
-    } else if (move.from !== 'xMark' && move.to === 'xMark') {
-      cell.xMark = true;
+    const currentValue = move.from;
+    const newValue = move.to;
+
+    if (currentValue !== cell.inputValue) {
+      throw new Error(
+        `Move specifies incorrect current value: specified ${currentValue}, but cell is ${cell.inputValue}`,
+      );
     }
 
     if (move.from === 'bulb' && move.to !== 'bulb') {
-      delete cell.bulb;
       this.unlightCells(move.index);
     } else if (move.from !== 'bulb' && move.to === 'bulb') {
-      cell.bulb = true;
       this.lightCells(move.index);
     }
+
+    cell.inputValue = newValue;
   }
 
   private doChangeHighlightMove(move: Extract<Move, { type: 'ChangeHighlight' }>): void {
-    const cell = cellAtIndex(this.board, move.index);
+    const cell = this.board.getCell(move.index);
     if (move.to !== undefined) {
       cell.highlight = move.to;
     } else {
@@ -179,19 +196,16 @@ export class GameState {
   }
 
   private lightCells(index: Index): void {
-    for (const otherIndex of lineOfSight(this.board, index, { includeStart: true })) {
-      const cell = cellAtIndex(this.board, otherIndex);
-      cell.lit = (cell.lit ?? 0) + 1;
+    const cell = this.board.getCell(index);
+    for (const cellToLight of cell.lineOfSight({ includeStart: true })) {
+      cellToLight.litCount++;
     }
   }
 
   private unlightCells(index: Index): void {
-    for (const otherIndex of lineOfSight(this.board, index, { includeStart: true })) {
-      const cell = cellAtIndex(this.board, otherIndex);
-      cell.lit = (cell.lit ?? 0) - 1;
-      if (cell.lit <= 0) {
-        delete cell.lit;
-      }
+    const cell = this.board.getCell(index);
+    for (const cellToLight of cell.lineOfSight({ includeStart: true })) {
+      cellToLight.litCount--;
     }
   }
 }

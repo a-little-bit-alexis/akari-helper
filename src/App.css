@@ -55,7 +55,7 @@ body {
 .app-main {
   display: grid;
   height: calc(100vh - var(--app-header-height));
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
   margin-top: var(--app-header-height);
   overflow: hidden;
 }

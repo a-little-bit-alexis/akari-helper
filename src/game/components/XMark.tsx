@@ -27,9 +27,9 @@ export function XMark({ isRecommendationPreview }: Props): React.ReactNode {
             className="stroke downstroke"
             fill="none"
             stroke="#000000"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
           />
           <line
             x1="5"
@@ -40,9 +40,9 @@ export function XMark({ isRecommendationPreview }: Props): React.ReactNode {
             className="stroke upstroke"
             fill="none"
             stroke="#000000"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
           />
         </g>
       </svg>

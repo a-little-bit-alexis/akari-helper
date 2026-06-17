@@ -1,56 +1,23 @@
-import { indicesEqual, type Index, type ReadOnlyBoardState } from '../model/board';
-import type { CellValue } from '../model/game';
+import type { Board } from '../model/Board';
+import type { Cell, CellInputValue } from '../model/Cell';
+import type { Index } from '../model/CellIndex';
 import type { RuleViolation } from '../rules/coreRules';
 import type { SolverAnnotation, SolverMove, SolverRecommendation } from '../solver/techniques';
 import { CellView } from './CellView';
 
 interface Props {
-  board: ReadOnlyBoardState;
+  board: Board;
   onCellClick: (index: Index) => void;
   ruleViolations: RuleViolation[];
   solverRecommendation: SolverRecommendation | undefined;
   animatingCells: SolverMove[] | undefined;
 }
 
-export function BoardView({
-  board,
-  onCellClick,
-  ruleViolations,
-  solverRecommendation,
-  animatingCells,
-}: Props) {
+export function BoardView({ board, onCellClick, ruleViolations, solverRecommendation }: Props) {
   return (
     <div className="akari-board-area">
       <div className="akari-board" style={getBoardStyle(board)}>
-        {board.cells.flatMap((row, rowIndex) =>
-          row.map((cell, columnIndex) => {
-            const solverRecommendedValue: CellValue | undefined = solverRecommendation?.moves.find(
-              (m) => indicesEqual(m.index, cell.index),
-            )?.value;
-            const solverAnnotation: SolverAnnotation | undefined =
-              solverRecommendation?.annotations?.find((annotation) =>
-                indicesEqual(annotation.index, cell.index),
-              );
-            const animateToValue: CellValue | undefined = animatingCells?.find((c) =>
-              indicesEqual(c.index, cell.index),
-            )?.value;
-
-            return (
-              <CellView
-                cell={cell}
-                board={board}
-                key={`${rowIndex}-${columnIndex}`}
-                onClick={() => {
-                  onCellClick(cell.index);
-                }}
-                ruleViolation={ruleViolations.find((v) => indicesEqual(v.index, cell.index))}
-                solverRecommendedValue={solverRecommendedValue}
-                solverAnnotation={solverAnnotation}
-                animateToValue={animateToValue}
-              />
-            );
-          }),
-        )}
+        {[...board.cells()].map((cell) => renderCell(cell))}
       </div>
       <div className="solver-recommendation-explanation-wrapper">
         {solverRecommendation !== undefined && (
@@ -61,11 +28,36 @@ export function BoardView({
       </div>
     </div>
   );
+
+  function renderCell(cell: Cell): React.ReactNode {
+    const solverRecommendedValue: CellInputValue | undefined = solverRecommendation?.moves.find(
+      (m) => m.index.equals(cell.index),
+    )?.value;
+
+    const solverAnnotation: SolverAnnotation | undefined = solverRecommendation?.annotations?.find(
+      (a) => a.index.equals(cell.index),
+    );
+
+    const ruleViolation = ruleViolations.find((v) => cell.index.equals(v.index));
+
+    return (
+      <CellView
+        cell={cell}
+        key={cell.index.toString()}
+        onClick={() => {
+          onCellClick(cell.index);
+        }}
+        ruleViolation={ruleViolation}
+        solverRecommendedValue={solverRecommendedValue}
+        solverAnnotation={solverAnnotation}
+      />
+    );
+  }
 }
 
-function getBoardStyle(board: ReadOnlyBoardState): React.CSSProperties {
+function getBoardStyle(board: Board): React.CSSProperties {
   return {
-    gridTemplateRows: `repeat(${board.cells.length}, 1fr)`,
-    gridTemplateColumns: `repeat(${board.cells[0].length}, 1fr)`,
+    gridTemplateRows: `repeat(${board.rows}, 1fr)`,
+    gridTemplateColumns: `repeat(${board.cols}, 1fr)`,
   };
 }

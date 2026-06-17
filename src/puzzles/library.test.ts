@@ -11,20 +11,20 @@ describe('parseBoard', () => {
       prefix |234  | suffix
     `);
 
-    expect(board.cells).toEqual([
+    expect(board).toEqual([
       [
-        { index: [0, 0] },
-        { index: [0, 1], wall: true },
-        { index: [0, 2], wall: true, number: 0 },
-        { index: [0, 3], wall: true, number: 1 },
-        { index: [0, 4] },
+        { cell_type: 'floor' },
+        { cell_type: 'wall', number: undefined },
+        { cell_type: 'wall', number: 0 },
+        { cell_type: 'wall', number: 1 },
+        { cell_type: 'floor' },
       ],
       [
-        { index: [1, 0], wall: true, number: 2 },
-        { index: [1, 1], wall: true, number: 3 },
-        { index: [1, 2], wall: true, number: 4 },
-        { index: [1, 3] },
-        { index: [1, 4] },
+        { cell_type: 'wall', number: 2 },
+        { cell_type: 'wall', number: 3 },
+        { cell_type: 'wall', number: 4 },
+        { cell_type: 'floor' },
+        { cell_type: 'floor' },
       ],
     ]);
   });
@@ -49,12 +49,10 @@ describe('loadPuzzles', () => {
     expect(loadPuzzles(plaintextPuzzles)).toEqual([
       {
         name: 'Tiny puzzle',
-        board: {
-          cells: [
-            [{ index: [0, 0], wall: true }, { index: [0, 1] }],
-            [{ index: [1, 0] }, { index: [1, 1], wall: true, number: 2 }],
-          ],
-        },
+        board: [
+          [{ cell_type: 'wall', number: undefined }, { cell_type: 'floor' }],
+          [{ cell_type: 'floor' }, { cell_type: 'wall', number: 2 }],
+        ],
       },
     ]);
   });

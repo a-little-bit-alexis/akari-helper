@@ -56,11 +56,11 @@ export const PLAINTEXT_PUZZLES: PlaintextPuzzle[] = [
 |X      1  |
 |      0  0|
 | X X0     |
-|3      X  |
+|2      X  |
 |      2  0|
 |   X X    |
 |  2     X |
-| 1  3   3 |
+| 1  3   2 |
 |    X  2  |
 `,
   },
@@ -70,12 +70,12 @@ export const PLAINTEXT_PUZZLES: PlaintextPuzzle[] = [
 |X       X |
 |    X     |
 |   1   1  |
-|  1     3 |
-|  3   3   |
+|  1     2 |
+|  3   2   |
 |     0    |
 | 2      X |
 |  X    1  |
-|   3  0   |
+|   2  0   |
 |X        X|
 `,
   },
@@ -168,7 +168,7 @@ export const PLAINTEXT_PUZZLES: PlaintextPuzzle[] = [
 |              |
 |   0 1  X     |
 |2   X  X  X0  |
-|  2   0       |
+|  3   0       |
 |   X          |
 |      1  2  2 |
 `,
@@ -198,7 +198,7 @@ export const PLAINTEXT_PUZZLES: PlaintextPuzzle[] = [
 | X  X  X   1 X|
 |2      X1     |
 |    0      1  |
-|   11  2  X 10|
+|   11  3  X 10|
 | X     X2     |
 |1     1       |
 |    X    2  10|
@@ -220,14 +220,14 @@ export const PLAINTEXT_PUZZLES: PlaintextPuzzle[] = [
 |      1       |
 |XX      X     |
 |  00 X   X  X1|
-|      2  X 2  |
+|      2  X 3  |
 |X X   X   X   |
-| 0X  1    2  X|
+| 0X  1    3  X|
 |       X     X|
 |    X  2  XX  |
 |X 2X  X   X   |
 | X  2   X    0|
-|1    1 2   1 X|
+|1    1 3   1 X|
 `,
   },
   {
@@ -236,7 +236,7 @@ export const PLAINTEXT_PUZZLES: PlaintextPuzzle[] = [
 | X  1         |
 |       2      |
 |    X   2  01 |
-| X2  0   2    |
+| X2  0   3    |
 |       1      |
 |      X   0  1|
 |  1X  0   X   |
@@ -247,36 +247,6 @@ export const PLAINTEXT_PUZZLES: PlaintextPuzzle[] = [
 | 1        2  0|
 |         2    |
 | X  2  X      |
-`,
-  },
-  {
-    name: 'genius-2-puzzle-1',
-    board: `
-| X     X       X X1    X |
-|  X   X X X      1       |
-|  X  00   X     2X  1    |
-|1 1      0X  1  X     1X |
-|     X   1  10     X 02  |
-|       1                 |
-| 1  0 0  0 XX     X  X   |
-|  1   0    1    1        |
-|              0      X   |
-|X  XX 0 1      0    1X   |
-|          X0           X |
-|XX   0   X  X            |
-| 2   0  0       X     XX2|
-|   0     X  X1X  X 2X X1 |
-|   X   11     X  X   0   |
-|     X                   |
-|0 2        1        1   0|
-|X2   1 0    2    0 X     |
-|        X    2X  0  1    |
-|   X       X X      1    |
-|        3   X        2   |
-|   10  2 X  X   1X  0  XX|
-| X          X     0 X 0  |
-|  X 0     X    2       X |
-|1        X  2   1  1     |
 `,
   },
 ];

@@ -1,28 +1,21 @@
-import {
-  adjacentCells,
-  adjacentIndices,
-  analyzeNumberedWall,
-  cellAtIndex,
-  numberedWalls,
-  type Index,
-  type ReadOnlyBoardState,
-} from '../model/board';
+import type { Board } from '../model/Board';
+import type { Index } from '../model/CellIndex';
 import type { SolverConfig, SolverRecommendation, Technique } from './techniques';
 
 function putXsNextToAllZeroes(
-  board: ReadOnlyBoardState,
+  board: Board,
   config: SolverConfig,
 ): SolverRecommendation | undefined {
   if (config.maxComplexity < 0) {
     return undefined;
   }
   const indicesToAddXs: Index[] = [];
-  for (const wall of numberedWalls(board)) {
-    if (wall.number === 0) {
-      for (const index of adjacentIndices(board, wall.index)) {
-        const adjacentCell = cellAtIndex(board, index);
-        if (!adjacentCell.wall && !adjacentCell.xMark && !adjacentCell.lit) {
-          indicesToAddXs.push(index);
+
+  for (const wall of board.numberedWalls()) {
+    if (wall.num === 0) {
+      for (const adj of wall.adjacentCells()) {
+        if (!adj.isWall && adj.inputValue !== 'xMark' && !adj.isLit()) {
+          indicesToAddXs.push(adj.index);
         }
       }
     }
@@ -43,83 +36,49 @@ function putXsNextToAllZeroes(
 }
 
 function numberedWallOnlyHasNNeighboringFloorTiles(
-  board: ReadOnlyBoardState,
+  board: Board,
   config: SolverConfig,
 ): SolverRecommendation | undefined {
   if (config.maxComplexity < 0) {
     return undefined;
   }
 
-  for (const wall of numberedWalls(board)) {
-    if (wall.number === undefined || wall.number === 0) {
+  for (const wall of board.numberedWalls()) {
+    if (wall.num === undefined || wall.num === 0) {
       continue;
     }
 
-    const { numBulbsRequiredTotal, numBulbsRemaining, potentialBulbCells } = analyzeNumberedWall(
-      board,
-      wall,
-    );
+    const { numBulbsRequiredTotal, numBulbsRemaining, blankCells } = wall.numberedWallAnalysis();
 
-    const neighbors = [...adjacentCells(board, wall.index)].filter((c) => !c.wall);
-
-    const alreadyPlacedBulbs = neighbors.filter((n) => n.bulb === true);
-
-    if (numBulbsRequiredTotal <= alreadyPlacedBulbs.length) {
+    if (numBulbsRemaining <= 0) {
       continue;
     }
 
-    if (potentialBulbCells.length !== numBulbsRemaining) {
+    if (blankCells.length !== numBulbsRemaining) {
       continue;
     }
-
-    const neighborsToAddBulbsTo = potentialBulbCells;
-
-    if (neighborsToAddBulbsTo.length === 0) {
-      continue;
-    }
-
-    const litNeighbors = neighbors.filter((n) => !n.bulb && n.lit);
-    const litNeighborsCount = litNeighbors.length;
-
-    const markedNeighbors = neighbors.filter((n) => !n.bulb && !n.lit && n.xMark === true);
-    const markedNeighborsCount = markedNeighbors.length;
-
-    const complexity = litNeighborsCount * 0.1 + markedNeighborsCount * 0.2;
 
     const plural = numBulbsRemaining > 1;
-
-    const are = plural ? 'are' : 'is';
-    const doNot = plural ? 'do not' : 'does not';
-
-    let predicate = '';
-    if (markedNeighborsCount > 0 && litNeighborsCount === 0) {
-      predicate = ` that do not have an X`;
-    } else if (markedNeighborsCount === 0 && litNeighborsCount > 0) {
-      predicate = ` that ${are} not illuminated`;
-    } else if (markedNeighborsCount > 0 && litNeighborsCount > 0) {
-      predicate = ` that ${are} not illuminated and ${doNot} have an X`;
-    }
-
     const more = numBulbsRemaining < numBulbsRequiredTotal ? ' more' : '';
     const s = plural ? 's' : '';
 
     return {
-      moves: neighborsToAddBulbsTo.map((cell) => ({
+      moves: blankCells.map((cell) => ({
         index: cell.index,
         value: 'bulb',
       })),
       annotations: [
         {
           index: wall.index,
-          label: 'Wall',
+          label: '',
           color: 'green',
         },
       ],
       explanation:
         `This wall needs ${numBulbsRemaining}${more} light bulb${s} adjacent to it. ` +
-        `It only has ${numBulbsRemaining} adjacent floor tile${s}${predicate}, so there must be a bulb in ` +
+        `It only has ${numBulbsRemaining} adjacent blank tile${s}, so there must be a bulb in ` +
         (plural ? 'each of these tiles.' : 'this tile.'),
-      complexity,
+      complexity: 0,
     };
   }
 
@@ -127,29 +86,25 @@ function numberedWallOnlyHasNNeighboringFloorTiles(
 }
 
 function putXsNextToNumberedWalls(
-  board: ReadOnlyBoardState,
+  board: Board,
   config: SolverConfig,
 ): SolverRecommendation | undefined {
   if (config.maxComplexity < 1) {
     return;
   }
-
-  for (const wall of numberedWalls(board)) {
-    const { numBulbsRequiredTotal, numBulbsRemaining, potentialBulbCells } = analyzeNumberedWall(
-      board,
-      wall,
-    );
+  for (const wall of board.numberedWalls()) {
+    const { numBulbsRequiredTotal, numBulbsRemaining, blankCells } = wall.numberedWallAnalysis();
 
     if (numBulbsRemaining > 0) {
       continue;
     }
 
-    if (potentialBulbCells.length < 1) {
+    if (blankCells.length < 1) {
       continue;
     }
 
     return {
-      moves: potentialBulbCells.map((cell) => ({
+      moves: blankCells.map((cell) => ({
         index: cell.index,
         value: 'xMark',
       })),
@@ -158,11 +113,6 @@ function putXsNextToNumberedWalls(
           index: wall.index,
           color: 'green',
         },
-        ...potentialBulbCells.map((cell) => ({
-          index: cell.index,
-          label: '',
-          color: '#ff5af1',
-        })),
       ],
       explanation: `This ${numBulbsRequiredTotal} has all its bulbs.`,
       complexity: 0,
