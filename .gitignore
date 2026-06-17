@@ -7,5 +7,6 @@ coverage/
 __pycache__/
 *.py[cod]
 screenshots/artifacts/
+screenshots/puzzles/
 .DS_Store
 *.log
